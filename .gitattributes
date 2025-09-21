@@ -1,0 +1,6 @@
+# Convert all the Source file as LF
+Dockerfile* text eol=lf
+*.md text eol=lf
+
+# Detects Dockerfile.<suffix> as Dockerfile
+Dockerfile* linguist-language=Dockerfile
