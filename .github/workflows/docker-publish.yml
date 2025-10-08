@@ -10,10 +10,14 @@ on:
         description: 'Image:Tag name to publish (e.g., mxe:qt-static)'
         required: true
       add_latest_tag:
-        description: 'Tag the image as latest'
+        description: 'Check this to add the "latest" tag'
         required: true
         type: boolean
         default: false
+      latest_tag_name:
+        description: 'Name for the "latest" tag (can be overridden, e.g., stable)'
+        required: true
+        default: 'latest'
       run_docker:
         description: 'I confirm the details above are correct and wish to proceed'
         required: true
@@ -44,7 +48,7 @@ jobs:
             echo 'tags<<EOF'
             echo "${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.inputs.docker_image }}"
             if [[ "${{ github.event.inputs.add_latest_tag }}" == "true" ]]; then
-              echo "${{ vars.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest"
+              echo "${{ vars.DOCKERHUB_USERNAME }}/$IMAGE_NAME:${{ github.event.inputs.latest_tag_name }}"
             fi
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
