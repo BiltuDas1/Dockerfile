@@ -1,6 +1,6 @@
 # Source: https://github.com/fffaraz/docker-qt/blob/master/Dockerfile.win64d
 
-FROM biltudas1/mxe:latest
+FROM biltudas1/mxe:20251001
 
 WORKDIR /opt/mxe
 
