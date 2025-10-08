@@ -23,7 +23,8 @@ RUN \
 
 RUN \
     cd /opt && \
-    git clone --depth 1 https://github.com/mxe/mxe.git && \
+    git clone https://github.com/mxe/mxe.git && \
+    git checkout 746deaf575a7d79ac3bd30d021d067076c0d48e8 && \
     exit 0
 
 ENV PATH="${PATH}:/opt/mxe/usr/bin"
