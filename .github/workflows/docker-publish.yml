@@ -3,11 +3,6 @@ name: "Docker Build & Publish"
 on:
   workflow_dispatch:
     inputs:
-      run_docker:
-        description: 'Set to true to run Docker build'
-        required: true
-        type: boolean
-        default: false
       dockerfile_path:
         description: 'Path to Dockerfile to use'
         required: true
@@ -18,6 +13,11 @@ on:
         default: 'mxe:qt-static'
       add_latest_tag:
         description: 'Also tag the image as latest'
+        required: true
+        type: boolean
+        default: false
+      run_docker:
+        description: 'Confirmed the above statement is correct'
         required: true
         type: boolean
         default: false
