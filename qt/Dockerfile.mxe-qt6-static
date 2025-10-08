@@ -1,12 +1,15 @@
-FROM biltudas1/mxe:gcc
+# Source: https://github.com/fffaraz/docker-qt/blob/master/Dockerfile.win64s
+
+FROM biltudas1/mxe:latest
 
 WORKDIR /opt/mxe
 
-# Build Qt6
-RUN make qt6-qtbase MXE_TARGETS='x86_64-w64-mingw32.static' -j$(nproc)
+# Build Qt6 Static
+RUN make JOBS=$(nproc) qt6-qtbase MXE_TARGETS='x86_64-w64-mingw32.static' -j$(nproc)
 
 # Setting up Environments
 ENV PATH="${PATH}:/opt/mxe/usr/x86_64-w64-mingw32.static/qt6/bin"
+ENV LINK_STATICALLY=yes
 
 RUN \
     set -eux && \
