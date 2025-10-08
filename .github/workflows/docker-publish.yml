@@ -45,7 +45,8 @@ jobs:
           
           # Conditionally add the 'latest' tag on a new line
           if [[ "${{ github.event.inputs.add_latest_tag }}" == "true" ]]; then
-            TAGS="$TAGS\n${{ vars.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest"
+            # THIS IS THE CORRECTED LINE: Use $'\n' to create a real newline
+            TAGS+=$'\n'${{ vars.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
           fi
           
           # Use a heredoc to correctly handle multi-line output
