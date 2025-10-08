@@ -4,20 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       dockerfile_path:
-        description: 'Path to Dockerfile to use'
+        description: 'Path to the Dockerfile to use (e.g., docker/Dockerfile.dev)'
         required: true
-        default: 'docker/Dockerfile.mxe-qt6-static'
       docker_image:
-        description: 'Image:Tag name to publish'
+        description: 'Image:Tag name to publish (e.g., mxe:qt-static)'
         required: true
-        default: 'mxe:qt-static'
       add_latest_tag:
-        description: 'Also tag the image as latest'
+        description: 'Tag the image as latest'
         required: true
         type: boolean
         default: false
       run_docker:
-        description: 'Confirmed the above statement is correct'
+        description: 'I confirm the details above are correct and wish to proceed'
         required: true
         type: boolean
         default: false
@@ -27,6 +25,16 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.run_docker }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check if Dockerfile exists
+        run: |
+          if [ ! -f "${{ github.event.inputs.dockerfile_path }}" ]; then
+            echo "ERROR: Dockerfile not found at '${{ github.event.inputs.dockerfile_path }}'"
+            exit 1
+          fi
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
