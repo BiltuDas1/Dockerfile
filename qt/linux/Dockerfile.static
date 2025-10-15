@@ -1,68 +1,94 @@
-FROM ubuntu:24.04
-
-# Qt Versions
+# QT ARGUMENTS
 ARG QT_VERSION=6.10.0
 ARG QT_MAJOR_VERSION=6.10
 
-# Install all build dependencies, including common static ones
+
+# Collecting Stage -->
+FROM ubuntu:24.04 AS source
+
+ARG QT_VERSION
+ARG QT_MAJOR_VERSION
+
+# INSTALLING DOWNLOADING TOOLS
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  wget ca-certificates tar xz-utils && \
+  apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+
+# DOWNLOADING QT SOURCE
+RUN \
+  wget -q https://download.qt.io/official_releases/qt/${QT_MAJOR_VERSION}/${QT_VERSION}/single/qt-everywhere-src-${QT_VERSION}.tar.xz && \
+  tar -xf qt-everywhere-src-${QT_VERSION}.tar.xz && \
+  rm qt-everywhere-src-${QT_VERSION}.tar.xz
+
+
+
+# Building Stage --->
+FROM ubuntu:24.04 AS builder
+
+ARG QT_VERSION
+
+# INSTALL ALL BUILD DEPENDENCIES
 RUN \
   export DEBIAN_FRONTEND=noninteractive && \
   apt-get update && apt-get install -y --no-install-recommends \
-  build-essential \
-  ninja-build \
-  gperf \
-  python3 \
-  perl \
-  wget \
-  ca-certificates \
-  zlib1g-dev \
-  libgl1-mesa-dev \
-  libxkbcommon-x11-dev \
-  libxcb-icccm4-dev \
-  libxcb-image0-dev \
-  libxcb-keysyms1-dev \
-  libxcb-render-util0-dev \
-  libxcb-xinerama0-dev \
-  libxcb-randr0-dev \
-  libxcb-shape0-dev \
-  libxcb-shm0-dev \
-  libxcb-xfixes0-dev \
-  libxcb-xkb-dev \
-  libfontconfig1-dev \
-  libfreetype6-dev \
-  libdbus-1-dev \
-  libharfbuzz-dev \
-  libjpeg-dev \
-  libpng-dev \
-  libssl-dev \
-  libudev-dev \
-  libinput-dev \
-  libsystemd-dev \
-  && rm -rf /var/lib/apt/lists/*
+  build-essential ninja-build gperf python3 perl git cmake \
+  # All development headers for Qt dependencies
+  libgl1-mesa-dev libvulkan-dev libxkbcommon-x11-dev libxcb-icccm4-dev \
+  libxcb-image0-dev libxcb-keysyms1-dev libxcb-render-util0-dev libxcb-xinerama0-dev \
+  libxcb-randr0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-xfixes0-dev \
+  libxcb-xkb-dev libfontconfig1-dev libfreetype6-dev libdbus-1-dev \
+  libharfbuzz-dev libjpeg-dev libpng-dev libssl-dev libudev-dev \
+  libinput-dev libsystemd-dev && \
+  # Clean up
+  apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-# Set up environment variables
-ENV QT_DIR=/opt/Qt/${QT_VERSION}-static
-ENV PATH=${QT_DIR}/bin:$PATH
-ENV QT_PLUGIN_PATH=${QT_DIR}/plugins
-
-# Download, build, and install Qt statically
-RUN wget https://download.qt.io/official_releases/qt/${QT_MAJOR_VERSION}/${QT_VERSION}/single/qt-everywhere-src-${QT_VERSION}.tar.xz && \
-  tar -xf qt-everywhere-src-${QT_VERSION}.tar.xz && \
-  cd qt-everywhere-src-${QT_VERSION} && \
+# BUILD QT FOR LINUX FROM SOURCE
+ENV QT_DIR=/opt/Qt/${QT_VERSION}
+COPY --from=source /qt-everywhere-src-${QT_VERSION} /tmp/qt-source
+RUN \
+  cd /tmp/qt-source && \
   ./configure \
   -prefix ${QT_DIR} \
-  -opensource \
-  -confirm-license \
+  -opensource -confirm-license \
   -release \
   -static \
-  -nomake examples \
-  -nomake tests \
   -qt-xcb \
+  -nomake examples -nomake tests \
   -no-pch && \
   ninja && \
   ninja install && \
-  cd .. && \
-  rm -rf qt-everywhere-src-${QT_VERSION} qt-everywhere-src-${QT_VERSION}.tar.xz
+  # Clean up the source code to keep this stage lean
+  rm -rf /tmp/qt-source
+
+
+
+# Final Image ---->
+FROM ubuntu:24.04 AS main
+
+ARG QT_VERSION
+
+# INSTALL ONLY RUNTIME DEPENDENCIES
+# Note: These are the libraries (.so files), not the development headers (.h files)
+RUN \
+  export DEBIAN_FRONTEND=noninteractive && \
+  apt-get update && apt-get install -y --no-install-recommends \
+  python3 git cmake ninja-build \
+  # Runtime libraries for Qt desktop apps
+  libgl1-mesa-glx libvulkan1 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 \
+  libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-randr0 \
+  libxcb-shape0 libxcb-shm0 libxcb-xfixes0 libxcb-xkb0 libfontconfig1 \
+  libfreetype6 libdbus-1-3 libharfbuzz0b libjpeg-turbo8 libpng16-16 \
+  libssl3 libudev1 libinput10 libsystemd0 && \
+  # Clean up
+  apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+
+# SETUP ENVIRONMENT VARIABLES
+ENV QT_DIR=/opt/Qt/${QT_VERSION}
+ENV PATH=${QT_DIR}/bin:$PATH
+ENV QT_PLUGIN_PATH=${QT_DIR}/plugins
+
+# COPY THE COMPILED QT SDK FROM THE BUILDER STAGE
+COPY --from=builder ${QT_DIR} ${QT_DIR}
 
 WORKDIR /app
 CMD ["/bin/bash"]
