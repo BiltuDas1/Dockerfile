@@ -1,0 +1,68 @@
+FROM ubuntu:24.04
+
+# Qt Versions
+ARG QT_VERSION=6.10.0
+ARG QT_MAJOR_VERSION=6.10
+
+# Install all build dependencies, including common static ones
+RUN \
+  export DEBIAN_FRONTEND=noninteractive && \
+  apt-get update && apt-get install -y --no-install-recommends \
+  build-essential \
+  ninja-build \
+  gperf \
+  python3 \
+  perl \
+  wget \
+  ca-certificates \
+  zlib1g-dev \
+  libgl1-mesa-dev \
+  libxkbcommon-x11-dev \
+  libxcb-icccm4-dev \
+  libxcb-image0-dev \
+  libxcb-keysyms1-dev \
+  libxcb-render-util0-dev \
+  libxcb-xinerama0-dev \
+  libxcb-randr0-dev \
+  libxcb-shape0-dev \
+  libxcb-shm0-dev \
+  libxcb-xfixes0-dev \
+  libxcb-xkb-dev \
+  libfontconfig1-dev \
+  libfreetype6-dev \
+  libdbus-1-dev \
+  libharfbuzz-dev \
+  libjpeg-dev \
+  libpng-dev \
+  libssl-dev \
+  libudev-dev \
+  libinput-dev \
+  libsystemd-dev \
+  && rm -rf /var/lib/apt/lists/*
+
+# Set up environment variables
+ENV QT_DIR=/opt/Qt/${QT_VERSION}-static
+ENV PATH=${QT_DIR}/bin:$PATH
+ENV QT_PLUGIN_PATH=${QT_DIR}/plugins
+
+# Download, build, and install Qt statically
+RUN wget https://download.qt.io/official_releases/qt/${QT_MAJOR_VERSION}/${QT_VERSION}/single/qt-everywhere-src-${QT_VERSION}.tar.xz && \
+  tar -xf qt-everywhere-src-${QT_VERSION}.tar.xz && \
+  cd qt-everywhere-src-${QT_VERSION} && \
+  ./configure \
+  -prefix ${QT_DIR} \
+  -opensource \
+  -confirm-license \
+  -release \
+  -static \
+  -nomake examples \
+  -nomake tests \
+  -qt-xcb \
+  -no-pch && \
+  ninja && \
+  ninja install && \
+  cd .. && \
+  rm -rf qt-everywhere-src-${QT_VERSION} qt-everywhere-src-${QT_VERSION}.tar.xz
+
+WORKDIR /app
+CMD ["/bin/bash"]

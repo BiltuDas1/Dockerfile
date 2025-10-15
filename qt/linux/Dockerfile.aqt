@@ -1,0 +1,39 @@
+FROM ubuntu:24.04
+
+# Install dependencies in a single layer for efficiency
+RUN export DEBIAN_FRONTEND=noninteractive && \
+  apt-get update && \
+  apt-get install -y --no-install-recommends \
+  build-essential \
+  python3 \
+  python3-pip \
+  libgl1-mesa-dev \
+  libglu1-mesa-dev \
+  libegl1-mesa-dev \
+  libxkbcommon-x11-dev \
+  libpulse-dev \
+  libasound2-dev \
+  libdbus-1-dev \
+  cmake \
+  # Clean up in the same layer to reduce image size
+  && apt-get autoremove -y && \
+  apt-get clean -y && \
+  rm -rf /var/lib/apt/lists/*
+
+# Install aqtinstall using pip
+# The --break-system-packages flag is needed for Ubuntu 23.04+
+RUN pip3 install aqtinstall --break-system-packages
+
+# Use aqtinstall to download and install the latest Qt version
+# The installation path will be something like /opt/Qt/6.7.2/gcc_64
+RUN LATEST_QT6=$(aqt list-qt linux desktop | grep '^6\.' | tail -n 1) && \
+  echo "Installing Qt for Linux version: ${LATEST_QT6}" && \
+  aqt install-qt linux desktop ${LATEST_QT6} -O /opt/Qt
+
+# Copy the entrypoint script
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+# Verify the installation by checking the qmake version
+CMD ["qmake", "--version"]
