@@ -53,7 +53,7 @@ RUN \
   -opensource -confirm-license \
   -release \
   -static \
-  -qt-xcb \
+  -xcb \
   -nomake examples -nomake tests \
   -no-pch && \
   cmake --build . --parallel && \
@@ -73,8 +73,9 @@ ARG QT_VERSION
 RUN \
   export DEBIAN_FRONTEND=noninteractive && \
   apt-get update && apt-get install -y --no-install-recommends \
-  python3 git cmake ninja-build && \
+  python3 git cmake ninja-build \
   # Runtime libraries for Qt desktop apps
+  build-essential libgl1-mesa-dev && \
   # libgl1-mesa-glx libvulkan1 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 \
   # libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-randr0 \
   # libxcb-shape0 libxcb-shm0 libxcb-xfixes0 libxcb-xkb0 libfontconfig1 \
