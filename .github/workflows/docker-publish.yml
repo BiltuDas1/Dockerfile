@@ -1,4 +1,5 @@
 name: "Docker Build & Publish"
+run-name: "Build & Publish Dockerfile: ${{ github.event.inputs.dockerfile_path }}"
 
 on:
   workflow_dispatch:
