@@ -36,7 +36,7 @@ RUN mkdir -p ${QT_DIR} && \
     # Install only the required Android architectures
     LATEST_QT6_ANDROID=$(aqt list-qt all_os android | grep 6. | tail -n 1 | awk '{print $NF}') && \
     echo "Installing Qt for Android version: ${LATEST_QT6_ANDROID}" && \
-    aqt install-qt linux android ${LATEST_QT6_ANDROID} android_arm64_v8a -O ${QT_DIR} --autodesktop
+    aqt install-qt linux android ${LATEST_QT6_ANDROID} android_armv7 -O ${QT_DIR} --autodesktop
 
 # SETUP ANDROID ENVIRONMENT VARIABLES
 ENV ANDROID_SDK_ROOT=/opt/android-sdk
