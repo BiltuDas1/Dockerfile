@@ -54,7 +54,6 @@ RUN \
   -release \
   -static \
   -static-runtime \
-  -qt-pcre -qt-zlib -qt-png -qt-jpeg -qt-freetype -qt-harfbuzz \
   -no-dbus -no-glib \
   -xcb \
   -nomake examples -nomake tests && \
