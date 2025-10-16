@@ -28,7 +28,7 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.run_docker }}
+    if: github.event.inputs.run_docker == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
